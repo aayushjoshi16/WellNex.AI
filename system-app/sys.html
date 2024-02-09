@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Doctor's Dashboard</title>
+        <script src="sys-script.js"></script>
+        <style>
+            body{
+                font-family: 'SF Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            }
+            .container {
+                max-width: 700px;
+                margin: 0 auto;
+            }
+            .header {
+                background-color: rgb(255, 255, 255);
+                margin: 0;
+                padding: 0;
+                display: flex;
+                justify-content: center;
+                align-items: left;
+                min-height: 100vh;
+            }
+            .search-bar {
+                position: absolute;
+                margin-top: 2vh;
+                left: 47%;
+                width: 40vw;
+                transform: translateX(-50%);
+                z-index: 1000;
+                display: flex;
+                justify-content: space-between;
+            }
+            .search-bar input {
+                padding: 1vh;
+                border-radius: 0.8vh;
+                flex-grow: 1;
+            }
+            .search-bar button {
+                background-color: #007BFF;
+                color: #fff;
+                border: none;
+                padding: 0.5vh 1vw;
+                border-radius: 0.8vh;
+                margin-left: .5vw;
+                margin-right: 1.4vw;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+                font-size: 1.2vh;
+            }
+            .search-bar button:hover {
+                background-color: #0056b3;
+            }
+            .patient-info {
+                background-color: #fff;
+                padding: 2vh;
+                border-radius: 1.2vh;
+                box-shadow: 0 0 2vh rgba(54, 49, 49, 0.1);
+                margin-bottom: 2vh;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            .patient-info:hover {
+                box-shadow: 0 0 3vh rgba(54, 49, 49, 0.2);
+            }
+            .patient-info h2, .patient-info p {
+                margin: 0;
+            }
+            .patient-info .more-info {
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease;
+            }
+            .patient-info.active .more-info {
+                max-height: 100vh;
+            }
+            .patients{
+                position: fixed;
+                margin-top: 10vh;
+            }
+            .age-gender {
+                display: flex;
+                justify-content: space-between;
+            }
+            .patient-gender {
+                text-align: right;
+            }
+            .patient-info h3 {
+                margin-bottom: 5px;
+            }
+            .patient-card {
+                border: 1px solid #e0e0e0;
+                border-radius: 15px;
+                padding: 20px;
+                margin: 20px 0;
+                background-color: #fff;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease-in-out;
+            }
+            
+            .patient-card:hover {
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+                transform: scale(1.02);
+            }
+            
+            .patient-card p {
+                margin: 0 0 15px;
+                line-height: 1.6;
+                color: #333;
+                font-size: 16px;
+            }
+            
+            .patient-card p:last-child {
+                margin-bottom: 0;
+            }
+            #container {
+                margin-top: 15vh;
+                margin-right: 10vw;
+            }
+            
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="input-field2">
+                <img src="https://i.pinimg.com/564x/cc/6b/40/cc6b403afd3311569aa3149d9aaa4944.jpg" alt="Description of the image" width="70" height="50">
+            </div>
+            <h2 id="formTitle">SLO Noor Foundation Doctor's Dashboard</h2>
+            <div class="search-bar">
+                <input type="text" id="searchBar" placeholder="Search by name...">
+                <button id="searchButton">🔍</button>
+            </div>
+            <div id="container"></div>
+    </body>
+</html>

@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Check-In Form</title>
+    <script defer src="form-script.js"></script>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.814.0.min.js"></script> 
+    <style>
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 1; 
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgb(0,0,0); 
+            background-color: rgba(0,0,0,0.4); 
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 1% auto; 
+            padding: 5px;
+            border: 1px solid #888;
+            width: 80%; 
+            height: auto; 
+            overflow: visible; 
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        body {
+            font-family: 'SF Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: rgb(255, 255, 255);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: left;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 700px;
+            background-color: rgb(255, 255, 255);
+            padding: 20px;
+            border-radius: 12px;
+        }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #F9F9F9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            padding: 12px;
+            z-index: 1;
+            text-align: left;
+            border-radius: 8px;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        .dropdown button {
+            cursor: pointer;
+            padding: 8px 12px;
+            background-color: transparent;
+            border: none;
+            color: #0070C9;
+        }
+        .dropdown-option {
+            cursor: pointer;
+            margin: 6px 0;
+            color: #333;
+        }
+        .input-field {
+            margin-bottom: 16px;
+        }
+        .input-field2 {
+            margin-bottom: 5px;
+        }
+        input::placeholder, select::placeholder, textarea::placeholder {
+            color: rgb(97, 97, 97);
+            font-size: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 19px;
+            box-sizing: border-box;
+            margin-bottom: 8px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            color: rgb(97, 97, 97);
+            transition: border-color 0.3s ease-in-out;
+            font-size: 15px;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #0070C9;
+            outline: none;
+        }
+        button {
+            background-color: #0070C9;
+            color: #fff;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 16px;
+            transition: background-color 0.3s ease-in-out;
+        }
+        button:hover {
+            background-color: #005090;
+        }
+        .language-options {
+            display: flex;
+            overflow: hidden;
+            justify-content: center;
+        }
+        .language-option {
+            cursor: pointer;
+            padding: 8px 12px;
+            background-color: transparent;
+            border: 1px solid #0070C9;
+            color: #0070C9;
+            border-radius: 8px;
+            transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+            flex-grow: 1;
+        }
+        .language-option:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+        .language-option:last-child {
+            border-radius: 0 8px 8px 0;
+        }
+        .language-option:hover {
+            background-color: #0070C9;
+            color: #fff;
+        }
+
+        .da-options {
+            display: flex;
+            overflow: hidden;
+            justify-content: center;
+        }
+        .da-option {
+            cursor: pointer;
+            padding: 8px 12px;
+            background-color: transparent;
+            border: 1px solid #0070C9;
+            color: #0070C9;
+            border-radius: 8px;
+            transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+            flex-grow: 1;
+        }
+        .da-option.clicked {
+            background-color: #0070C9;
+            color: #fff;
+        }
+        .da:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+        .da:last-child {
+            border-radius: 0 8px 8px 0;
+        }
+        .da:hover {
+            background-color: #0070C9;
+            color: #fff;
+        }
+
+        .hipaa-consent {
+            display: flex;
+            overflow: hidden;
+            font-family: 'SF Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            margin: -10px 0 0 0; 
+            padding: 0;
+            justify-content: center;
+            align-items: center;
+            min-height: 10vh;
+            font-size: 16px;
+          }
+        .consentcheck {
+            display: flex;
+            align-items: center; 
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="input-field2">
+            <img src="https://i.pinimg.com/564x/cc/6b/40/cc6b403afd3311569aa3149d9aaa4944.jpg" alt="Description of the image" width="70" height="50">
+        </div>
+        <h2 class="trans" id="formTitle">Welcome to the SLO Noor Foundation Check-In</h2>
+        <div class="language-options">
+            <button class="language-option" onclick="translateAllClasses('es', 'en')">English</button>
+            <button class="language-option" onclick="translateAllClasses('en', 'es')">Español</button>
+        </div>
+        <form action="/api/submit" method="post" id="patientForm">
+            <div class="input-field">
+                <label for="personalinfo">Enter your personal information:</label>
+                <input type="text" id="firstname" name="firstname" placeholder="First Name">
+                <input type="text" id="middlename" name="middlename" placeholder="Middle Name">
+                <input type="text" id="lastname" name="lastname" placeholder="Last Name">
+                <input type="date" id="dob" name="dob" placeholder="Date of Birth">
+                <select id="ms" name="ms">
+                    <option value="" disabled selected>Marital Status</Select:disabled></option>
+                    <option value="male">Single</option>
+                    <option value="female">Married</option>
+                    <option value="female">Divorced</option>
+                    <option value="other">Other</option>
+                </select>
+                <select id="gender" name="gender">
+                    <option value="" disabled selected>Gender</Select:disabled></option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+                <select id="race" name="race">
+                    <option value="" disabled selected>Race</Select:disabled></option>
+                    <option value="African American">African American</option>
+                    <option value="American Indian/ Alaska Native">American Indian/ Alaska Native</option>
+                    <option value="Asian">Asian</option>
+                    <option value="Caucasian">Caucasian</option>
+                    <option value="Hawaiian/ Pacific Islander">Hawaiian/ Pacific Islander</option>
+                    <option value="Hispanic">Hispanic</option>
+                    <option value="Two or More Races">Two or More Races</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="text" id="sa" name="sa" placeholder="Street Address">
+                <input type="city" id="city" name="city" placeholder="City">
+                <select id="state" name="state">
+                    <option value="" disabled selected>State</Select:disabled></option>
+                    <option value="AL">AL</option>
+                    <option value="AK">AK</option>
+                    <option value="AZ">AZ</option>
+                    <option value="AR">AR</option>
+                    <option value="CA">CA</option>
+                    <option value="CO">CO</option>
+                    <option value="CT">CT</option>
+                    <option value="DE">DE</option>
+                    <option value="FL">FL</option>
+                    <option value="GA">GA</option>
+                    <option value="HI">HI</option>
+                    <option value="ID">ID</option>
+                    <option value="IL">IL</option>
+                    <option value="IN">IN</option>
+                    <option value="IA">IA</option>
+                    <option value="KS">KS</option>
+                    <option value="KY">KY</option>
+                    <option value="LA">LA</option>
+                    <option value="ME">ME</option>
+                    <option value="MD">MD</option>
+                    <option value="MI">MI</option>
+                    <option value="MN">MN</option>
+                    <option value="MS">MS</option>
+                    <option value="MO">MO</option>
+                    <option value="MT">MT</option>
+                    <option value="NE">NE</option>
+                    <option value="NV">NV</option>
+                    <option value="NH">NH</option>
+                    <option value="NJ">NJ</option>
+                    <option value="NM">NM</option>
+                    <option value="NY">NY</option>
+                    <option value="NC">NC</option>
+                    <option value="ND">ND</option>
+                    <option value="OH">OH</option>
+                    <option value="OK">OK</option>
+                    <option value="OR">OR</option>
+                    <option value="PA">PA</option>
+                    <option value="RI">RI</option>
+                    <option value="SC">SC</option>
+                    <option value="SD">SD</option>
+                    <option value="TN">TN</option>
+                    <option value="TX">TX</option>
+                    <option value="UT">UT</option>
+                    <option value="VT">VT</option>
+                    <option value="VA">VA</option>
+                    <option value="WA">WA</option>
+                    <option value="WV">WV</option>
+                    <option value="WI">WI</option>
+                    <option value="WY">WY</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="zip" id="zip" name="zip" placeholder="ZIP">
+                <select id="hsize" name="hsize">
+                    <option value="" disabled selected>Household Size</Select:disabled></option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8+">8+</option>
+                </select>
+            </div>
+            <div class="input-field">
+                <label for="contactinfo">What's your contact information?</label>
+                <input type="email" id="email" name="email" placeholder="Email Address">
+                <input type="tel" id="phone" name="phone" placeholder="Phone Number">
+            </div>
+            <div class="input-field">
+                <label for="econtactinfo">What's your emergency contact information?</label>
+                <input type="text" id="efirstname" name="efirstname" placeholder="First Name">
+                <input type="text" id="elastname" name="elastname" placeholder="Last Name">
+                <input type="text" id="erelationship" name="erelationship" placeholder="Relationship">
+                <input type="etel" id="ephone" name="ephone" placeholder="Phone Number">
+            </div>
+            <div class="input-field">
+                <label for="rcontactinfo">Responsible party information? (If other then the patient)</label>
+                <input type="text" id="rfirstname" name="rfirstname" placeholder="First Name">
+                <input type="text" id="rlastname" name="rlastname" placeholder="Last Name">
+                <input type="text" id="rrelationship" name="rrelationship" placeholder="Relationship">
+                <input type="date" id="rdob" name="rdob" placeholder="Date of Birth">
+                <input type="etel" id="rphone" name="rphone" placeholder="Phone Number">
+            </div>
+            <div class="input-field">
+                <label for="Employment">What's your employment?</label>
+                <select id="Employment Status" name="Employment Status">
+                    <option value="" disabled selected>Employment status</option>
+                    <option value="employed">Employed</option>
+                    <option value="unemployed">Unemployed</option>
+                    <option value="retired">Retired</option>
+                    <option value="disabled">Disabled</option>
+                    <option value="student">Student</option>
+                    <option value="other">Other</option>
+                </select>
+                <input type="text" id="income" name="income" placeholder="Household annual income">
+                <select id="agw" name="agw">
+                    <option value="" disabled selected>Seasonal/ Ag worker?</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+            <div class="input-field">
+                <label for="social">Social</label>
+                <select id="learn" name="learn">
+                    <option value="" disabled selected>How did you learn about SLO Noor Clinic?</option>
+                    <option value="TV">TV</option>
+                    <option value="radio">Radio</option>
+                    <option value="social media">Social Media</option>
+                    <option value="friend/family">Friend/Family</option>
+                    <option value="referral">Referral</option>
+                    <option value="other">Other</option>
+                </select>
+                <select id="transp" name="transp">
+                    <option value="" disabled selected>Do you have transportation to and from appointments?</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+                <select id="mc" name="mc">
+                    <option value="" disabled selected>Have you been eligible for Medi-Cal in the last three months?</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+                <select id="food" name="food">
+                    <option value="" disabled selected>Have you been able to purchase food for the last three months?</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+                <select id="homel" name="homel">
+                    <option value="" disabled selected>Have you been homeless or feared becoming homeless in the last three months?</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+            <div class="input-field">
+                <label for="symptom">What are your current symptoms or reason for visit?</label>
+                <input type="text" id="symptoms" name="symptoms" placeholder="Enter current symptoms or reasons for visit">
+            </div>
+            <div class="input-field">
+                <label for="currentMedications">What's your health history?</label>
+                <input type="text" id="currentMedications" name="currentMedications" placeholder="Enter any current medications">
+                <input type="text" id="allergies" name="allergies" placeholder="Enter any allergies">
+                <select id="hospitalized" name="hospitalized">
+                    <option value="" disabled selected>Have you been hospitalized in the past year?</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+                <select id="smoker" name="smoker">
+                    <option value="" disabled selected>Do you smoke?</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+                <select id="housesmoker" name="housesmoker">
+                    <option value="" disabled selected>Does anyone in your household smoke?</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+                <select id="alcohol" name="alcohol">
+                    <option value="" disabled selected>How many alcoholic drinks do you consume weekly?</option>
+                    <option value="0">0</option>
+                    <option value="1-3">1-3</option>
+                    <option value="3-5">3-5</option>
+                    <option value="6+">6+</option>
+                </select>
+            </div>
+            <div class="input-field">
+                <label for="wh">What's your health history? (Women)</label>
+                <input type="text" id="mens" name="mens" placeholder="How many weeks since last menstrual cycle?">
+                <input type="text" id="preg" name="preg" placeholder="Enter number of pregnancies">
+                <input type="text" id="lb" name="lb" placeholder="Enter number of live births">
+                <input type="text" id="mis" name="mis" placeholder="Enter number of miscarriages">
+            </div>
+            <div class="input-field">
+                <label for="famhlth">What's your family's health history?</label>
+                <input type="text" id="fh" name="fh" placeholder="Enter any history of disease in your family">
+            </div> 
+            <div class="input-field">
+                <label for="insuranceinfo">What's your insurance information?</label>
+                <input type="text" id="provider" name="provider" placeholder="Insurance Provider (Ex: Aetna)">
+                <input type="text" id="policyNumber" name="policyNumber" placeholder="Policy Number">
+                <input type="text" id="groupNumber" name="groupNumber" placeholder="Group Number">
+            </div>
+            <div class="input-field">
+                <label for="PHQ-2info">Patient Health Questionnaire (PHQ-9):</label>
+                <p>Over the last two weeks, how often have you been bothered by any of the following problems?</p>
+
+                <p>1. Little interest or pleasure in doing things</p>
+                <select>
+                    <option value="" disabled selected>Select</Select:disabled></option>
+                    <option value="Not at all">Not at all</option>
+                    <option value="Several days">Several days</option>
+                    <option value="More than half the days">More than half the days</option>
+                    <option value="Nearly every day">Nearly every day</option>
+                </select>
+                
+                <p>2. Feeling down, depressed, or hopeless</p>
+                <select>
+                    <option value="" disabled selected>Select</Select:disabled></option>
+                    <option value="Not at all">Not at all</option>
+                    <option value="Several days">Several days</option>
+                    <option value="More than half the days">More than half the days</option>
+                    <option value="Nearly every day">Nearly every day</option>
+                </select>
+                
+                <p>3. Trouble falling or staying asleep, or sleeping too much</p>
+                <select>
+                    <option value="" disabled selected>Select</Select:disabled></option>
+                    <option value="Not at all">Not at all</option>
+                    <option value="Several days">Several days</option>
+                    <option value="More than half the days">More than half the days</option>
+                    <option value="Nearly every day">Nearly every day</option>
+                </select>
+                
+                <p>4. Feeling tired or having little energy</p>
+                <select>
+                    <option value="" disabled selected>Select</Select:disabled></option>
+                    <option value="Not at all">Not at all</option>
+                    <option value="Several days">Several days</option>
+                    <option value="More than half the days">More than half the days</option>
+                    <option value="Nearly every day">Nearly every day</option>
+                </select>
+                
+                <p>5. Poor appetite or overeating</p>
+                <select>
+                    <option value="" disabled selected>Select</Select:disabled></option>
+                    <option value="Not at all">Not at all</option>
+                    <option value="Several days">Several days</option>
+                    <option value="More than half the days">More than half the days</option>
+                    <option value="Nearly every day">Nearly every day</option>
+                </select>
+                
+                <p>6. Feeling bad about yourself - or that you are a failure or have let yourself or your family down</p>
+                <select>
+                    <option value="" disabled selected>Select</Select:disabled></option>
+                    <option value="Not at all">Not at all</option>
+                    <option value="Several days">Several days</option>
+                    <option value="More than half the days">More than half the days</option>
+                    <option value="Nearly every day">Nearly every day</option>
+                </select>
+                
+                <p>7. Trouble concentrating on things, such as reading the newspaper or watching television</p>
+                <select>
+                    <option value="" disabled selected>Select</Select:disabled></option>
+                    <option value="Not at all">Not at all</option>
+                    <option value="Several days">Several days</option>
+                    <option value="More than half the days">More than half the days</option>
+                    <option value="Nearly every day">Nearly every day</option>
+                </select>
+                
+                <p>8. Moving or speaking so slowly that other people could have noticed or the opposite, being so fidgety or restless that you have been moving around a lot more than usual</p>
+                <select>
+                    <option value="" disabled selected>Select</Select:disabled></option>
+                    <option value="Not at all">Not at all</option>
+                    <option value="Several days">Several days</option>
+                    <option value="More than half the days">More than half the days</option>
+                    <option value="Nearly every day">Nearly every day</option>
+                </select>
+                
+                <p>9. Thoughts that you would be better off dead, or of hurting yourself</p>
+                <select>
+                    <option value="" disabled selected>Select</Select:disabled></option>
+                    <option value="Not at all">Not at all</option>
+                    <option value="Several days">Several days</option>
+                    <option value="More than half the days">More than half the days</option>
+                    <option value="Nearly every day">Nearly every day</option>
+                </select>
+                
+                <p>10. If you checked off any problems, how difficult have these problems made it for you at work, home, or with other people?</p>
+                <select>
+                    <option value="" disabled selected>Select</Select:disabled></option>
+                    <option value="Not at all">Not at all</option>
+                    <option value="Several days">Several days</option>
+                    <option value="More than half the days">More than half the days</option>
+                    <option value="Nearly every day">Nearly every day</option>
+                </select>
+            
+            </div>
+            <div class="input-field">
+                <label for="PHQ-2info">Generalised Anxiety Disorder Questionnaire (GAD-7):</label>
+                <p>Over the last two weeks, how often have you been bothered by any of the following problems?</p>
+                
+                <p>1. Feeling nervous, anxious or on edge</p>
+                <select>
+                    <option value="" disabled selected>Select</Select:disabled></option>
+                    <option value="Not at all">Not at all</option>
+                    <option value="Several days">Several days</option>
+                    <option value="More than half the days">More than half the days</option>
+                    <option value="Nearly every day">Nearly every day</option>
+                </select>
+                
+                <p>2. Not being able to stop or control worrying</p>
+                <select>
+                    <option value="" disabled selected>Select</Select:disabled></option>
+                    <option value="Not at all">Not at all</option>
+                    <option value="Several days">Several days</option>
+                    <option value="More than half the days">More than half the days</option>
+                    <option value="Nearly every day">Nearly every day</option>
+                </select>
+                
+                <p>3. Worrying too much about different things</p>
+                <select>
+                    <option value="" disabled selected>Select</Select:disabled></option>
+                    <option value="Not at all">Not at all</option>
+                    <option value="Several days">Several days</option>
+                    <option value="More than half the days">More than half the days</option>
+                    <option value="Nearly every day">Nearly every day</option>
+                </select>
+
+                <p>4. Trouble relaxing</p>
+                <select>
+                    <option value="" disabled selected>Select</Select:disabled></option>
+                    <option value="Not at all">Not at all</option>
+                    <option value="Several days">Several days</option>
+                    <option value="More than half the days">More than half the days</option>
+                    <option value="Nearly every day">Nearly every day</option>
+                </select>
+                
+                <p>5. Being so restless that it is hard to sit still</p>
+                <select>
+                    <option value="" disabled selected>Select</Select:disabled></option>
+                    <option value="Not at all">Not at all</option>
+                    <option value="Several days">Several days</option>
+                    <option value="More than half the days">More than half the days</option>
+                    <option value="Nearly every day">Nearly every day</option>
+                </select>
+                
+                <p>6. Becoming easily annoyed or irritable</p>
+                <select>
+                    <option value="" disabled selected>Select</Select:disabled></option>
+                    <option value="Not at all">Not at all</option>
+                    <option value="Several days">Several days</option>
+                    <option value="More than half the days">More than half the days</option>
+                    <option value="Nearly every day">Nearly every day</option>
+                </select>
+                
+                <p>7. Feeling afraid as if something awful might happen</p>
+                <select>
+                    <option value="" disabled selected>Select</Select:disabled></option>
+                    <option value="Not at all">Not at all</option>
+                    <option value="Several days">Several days</option>
+                    <option value="More than half the days">More than half the days</option>
+                    <option value="Nearly every day">Nearly every day</option>
+                </select>
+            </div>
+            <div id="hipaaModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>HIPAA TERMS AND CONDITIONS AGREEMENT</h2>
+                    <p>This Health Insurance Portability and Accountability Act (HIPAA) Terms and Conditions Agreement ("Agreement") is entered into between Noor Foundation Health Clinics, hereinafter referred to as the "Company," and the user, hereinafter referred to as the "User."</p>
+                    <ol>
+                        <li>
+                            <h3>Purpose:</h3>
+                            <p>This Agreement governs the use of AI technology by the Company to aid in the diagnosis of health issues for the User while ensuring compliance with HIPAA regulations.</p>
+                        </li>
+                        <li>
+                            <h3>AI Utilization:</h3>
+                            <p>The Company utilizes artificial intelligence (AI) for the purpose of enhancing health issue diagnosis. Users acknowledge that AI is a tool to assist healthcare professionals and does not replace the advice or diagnosis of a qualified healthcare provider.</p>
+                        </li>
+                        <li>
+                            <h3>Protection of Personal Information:</h3>
+                            <ul>
+                                <li>The Company shall not redistribute, sell, or use the User's personal private information in any manner other than for the intended purposes specified in this Agreement.</li>
+                                <li>Personal information includes, but is not limited to, identifiable health information, contact details, and any other information that can be used to identify the User.</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <h3>Confidentiality:</h3>
+                            <ul>
+                                <li>The Company shall maintain the confidentiality of all personal information provided by the User.</li>
+                                <li>Access to personal information is restricted to authorized personnel who require such access for the purposes outlined in this Agreement.</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <h3>Data Security:</h3>
+                            <p>The Company shall implement reasonable measures to safeguard the confidentiality, integrity, and availability of the User's personal information. These measures include encryption, access controls, and regular security assessments.</p>
+                        </li>
+                        <li>
+                            <h3>Compliance with HIPAA:</h3>
+                            <p>The Company agrees to comply with all relevant provisions of the Health Insurance Portability and Accountability Act (HIPAA) to protect the privacy and security of the User's health information.</p>
+                        </li>
+                        <li>
+                            <h3>User Consent:</h3>
+                            <p>By using the AI diagnostic tool provided by the Company, the User consents to the collection, use, and disclosure of their personal information in accordance with the terms outlined in this Agreement.</p>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+              <!-- Modify your link to open the modal when clicked -->
+            <div class="consentcheck">
+                <a href="#" id="hipaaLink">
+                    <label class="trans">I Have Read The Terms & Conditions</label>
+                </a>
+                <input type="checkbox" name="hipaa-consent" id="hipaa-consent" required>
+            </div>
+            <button class="trans" id="submitButton" type="submit">Submit</button>
+            <div class="company-info" style="font-family: 'SF Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #F0F0F0; padding: 15px; border-radius: 8px; margin-top: 20px; color: #555; text-align: left;">
+                <h3 id="contactInfo" style="font-size: 16px; margin-bottom: 8px;">Contact Information</h3>
+                <p id="contactName" style="font-size: 12px;">SLO Noor Foundation Health Clinics:</p>
+                <p id="contactAddressSLO" style="font-size: 12px;">San Luis Obispo Address: 1428 Phillip’s Lane, Suite 203, San Luis Obispo, CA 93401</p>
+                <p id="contactAddressPR" style="font-size: 12px;">Paso Robles Address: 400 Oak Hill Road, Paso Robles, CA 93446</p>
+                <p id="contactPhone" style="font-size: 12px;">Phone: (805) 439-1799</p>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
