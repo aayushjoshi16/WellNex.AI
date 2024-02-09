@@ -9,4 +9,4 @@ Contributors:
 - Rishi Gupta
 - Sophie Taylor
 - Rohan Udupa
-- Jude 
+- Jude Shin
