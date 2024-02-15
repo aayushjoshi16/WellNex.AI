@@ -1,7 +1,3 @@
-/* Form Server
-*  Responsible for receiving form submissions through API
-*/
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -12,8 +8,6 @@ const { ai_communication } = require('./ai.js');
 const app = express();
 const port = 3000;
 
-// Comment
-const test = 0;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 

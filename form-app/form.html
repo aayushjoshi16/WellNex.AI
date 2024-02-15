@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patient Check-In Form</title>
     <script defer src="form-script.js"></script>
-    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.814.0.min.js"></script> 
     <style>
         .modal {
             display: none; 
@@ -214,10 +213,6 @@
             <img src="https://i.pinimg.com/564x/cc/6b/40/cc6b403afd3311569aa3149d9aaa4944.jpg" alt="Description of the image" width="70" height="50">
         </div>
         <h2 class="trans" id="formTitle">Welcome to the SLO Noor Foundation Check-In</h2>
-        <div class="language-options">
-            <button class="language-option" onclick="translateAllClasses('es', 'en')">English</button>
-            <button class="language-option" onclick="translateAllClasses('en', 'es')">Español</button>
-        </div>
         <form action="/api/submit" method="post" id="patientForm">
             <div class="input-field">
                 <label for="personalinfo">Enter your personal information:</label>

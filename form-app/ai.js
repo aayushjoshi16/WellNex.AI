@@ -1,11 +1,4 @@
-/* Communication with GPT-4
-*  - Applying CoT prompt engineering technique to optimize AI model's parsing efficiency
-*  - Requesting for summarization of all the medical information and to provide follow-up
-*    questions that wil assist towards the diagnosis
-*/
-
 const apiKey = 'api-key-goes-here';
-
 
 const OpenAI = require("openai");
 const openai = new OpenAI({ apiKey });
